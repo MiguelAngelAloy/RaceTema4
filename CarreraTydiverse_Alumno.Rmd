@@ -384,31 +384,38 @@ Carga el fichero de datos `datostidyr.Rdata` que contiene varios conjuntos de da
 La columna `grade` es la calificación y las dos siguientes el número de estudiantes hombre y mujer que han recibido dicha calificación.
 ¿ Cuáles son las variables ?. Transfórmalo en un conjunto `tidy` con las variables, `grade, sex y count`
 ```{r}
-
+library(tidyr)
+library(dplyr)
+load(file = "./data/datostidyr.Rdata")
+students_tidy <- students %>%
+  pivot_longer(cols = c(male, female),  
+               names_to = "sex",
+               values_to ="count") 
+students_tidy
 ```
 30. Considera el conjunto ´students2´, que es similar al primero pero que se han recogido datos correspondientes a dos grupos, (`male_1, female_1`, etc). Transfórmalo en un conjunto `tidy` añadiendo una columna adicional correspondiente al grupo (llama a la nueva variable `class`)
 ```{r}
-
-
-
+students2 %>%
+  pivot_longer(cols = starts_with("male") | starts_with("female"),
+               names_to = "class", 
+               values_to = "count")
 
 ```
 31. Considera el conjunto `students3` y observa por qué no es un `tidy data` . Las variables finales del conjunto deberían ser: `name, class, midterm, final`. Dado que un alumno solo puede estar en una de las clases aparecen muchos `NA`, al reorganizar, usa `na.rm=TRUE` en las opciones de `gather`
 ```{r}
-
-
-
-
+students3_tidy <- students3 %>%
+  gather(key = "class_exam", value = "score", -name) %>% 
+  na.omit()
+students3_tidy
 ```
 32. Considera que la columna `class` queremos especificarla con valores, 1,2,3,4 y 5 en lugar de class1, ..., class5. En librería de importación de datos (`readr`) se proporcionan funciones que permite identificar y extraer diversos tipos de datos. Son las funciones `parse_XXXX`. Observa el efecto de aplicar `parse_number('class5')` y utiliza el resultado para realizar la tarea solicitada.
 
 ```{r}
-
-
-
-
-
-
+library(dplyr)
+library(readr)
+students3_tidy <- students3_tidy %>%
+  mutate(class = parse_number("class5"))
+students3_tidy
 ```
 33. Observa el conjunto `students4` donde se presenta el problema de tener varias observaciones en la misma tabla. Separa el conjunto en dos tablas, una que contenga información relativa a los estudiantes, que llamarás `student_info`, que no debe contener repeticiones, y otra con las calificaciones y la clave primaria que enlaza ambas tablas(`id`), que llamarás `gradebook`.
 ```{r}
@@ -435,22 +442,10 @@ Considera los datos almacenado en `sat` y haz las transformaciones adecuadas par
 
 ```{r}
 
-
-
-
-
-
 ```
 
 36. Utiliza agrupamientos, según las variables `part, sex` y genera dos nuevas columnas que contengan el número total de estudiantes en dicho grupo, y la proporción dentro del grupo. Almacénalas en las variables `total y prop` respectivamente.
 ```{r}
-
-
-
-
-
-
-
 
 
 ```
@@ -475,27 +470,42 @@ Considera los datos almacenado en `sat` y haz las transformaciones adecuadas par
 
 38. La función `today` devuelve la fecha actual. Almacéna la fecha actual en `this_day`, y muéstrala por pantalla. Usa las funciones `year, month y day` para extraer cada una de las partes. `wday` para obtener el día de la semana ()
 ```{r}
+library(lubridate)
+this_day <- today()
 
-
-
-
-
-
+year_part <- year(this_day)
+month_part <- month(this_day)
+day_part <- day(this_day)
+wday_part <- wday(this_day, label = TRUE) 
+cat("Year:", year_part, "\n")
+cat("Month:", month_part, "\n")
+cat("Day:", day_part, "\n")
+cat("Weekday:", wday_part, "\n")
 
 ```
 39. Guarda el instante actual en una variable llamada `this_moment` con la función `now`
 y muéstralo por pantalla. Usa las funciónes `hour, minute, second` para extraer la información de cada elemento.
 ```{r}
+this_moment <- now()
+hour_part <- hour(this_moment)
+minute_part <- minute(this_moment)
+second_part <- second(this_moment)
 
-
-
-
+cat("Hour:", hour_part, "\n")
+cat("Minute:", minute_part, "\n")
+cat("Second:", second_part, "\n")
 
 ```
 40. La librería `lubridate` dispone de múltiples funciones para importar en formato fecha datos con un gran variedad de formatos de entrada `ymd(), dmy(), hms(), ymd_hms()` donde cada letra indica _years (y),months (m), days (d), hours (h), minutes (m), y seconds (s)_. Prueba my_date <- ymd("2019-02-14"), y determina de que clase es `my_date`. Las funciones son muy robustas y pueden intepretar correctamente diversos formato. Prueba `ymd()` para importar la fecha  __"1989 May 17"__. ¿Cómo importarías __"March 12, 1975"__?
 ```{r}
 
+my_date <- ymd("2019-02-14")
+my_date2 <- ymd("1989 May 17")
+my_date3 <- mdy("March 12, 1975")
 
+cat("Clase de my_date:", class(my_date), "\n")
+cat("my_date2:", my_date2, "\n")
+cat("my_date3:", my_date3, "\n")
 
 ```
 41. Importa el valor numérico `25081985`, sabiendo que el formato es dia, mes, año, y posteriormente `192012` donde se ha almacenado año, mes y día. Modifica el campo fecha en el segundo caso añadiendo algún carácter separador para eliminar la ambigüedad.
@@ -503,24 +513,37 @@ y muéstralo por pantalla. Usa las funciónes `hour, minute, second` para extrae
 fecha<-'19200102'
 ymd(fecha)
 
-
-
-
+my_date1 <- "25081985"
+dmy(my_date1)
+my_date2 <- "1920-12-01"
+ymd(my_date2)
 ```
 42. Almacena la cadena `2014-08-23 17:23:02` en la variable `dt1`  e impórtala para que incluya la fecha y la hora,posteriormente importa la cadena `"03:22:14"` (hh:mm:ss)
 ```{r}
 
+dt1 <- "2014-08-23 17:23:02"
 
+datetime1 <- ymd_hms(dt1)
+cat("Datetime1:", datetime1, "\n")
 
+time1 <- hms("03:22:14")
+cat("Time1:", time1, "\n")
 
 ```
 43. Importa el vector de fechas almacenado el `dt2`
 ```{r}
+dt2 <- c("2014-08-23", "2015-09-15", "2016-12-01", "2017-03-18")
+dates_vector <- ymd(dt2)
+cat("Dates Vector:", dates_vector, "\n")
 
 ```
 44. Podemos reasingar nuevos valores a una variable fecha/hora con la función `update`
 , por ejemplo: `update(this_moment, hours = 8, minutes = 34, seconds = 55)`. Actualiza la variable `this_moment` creada anteriormente para que contenga la hora actual.
 ```{r}
+this_moment <- now()
+cat("Instante original:", this_moment, "\n")
+this_moment_updated <- c(hours = hour(this_moment),minutes = minute(this_moment), seconds = second(this_moment))
+this_moment_updated
 
 ```
 45. __Zonas horarias__. Considera que estás en Nueva York, que planeas visitar a un amigo en Hong Kong y que has perdido tu itinerario, pero sabes que tu vuelo sale de Nueva York a las 17:34 (17:34 horas) pasado mañana. También sabes que el vuelo está programado para llegar a Hong Kong exactamente 15 horas y 50 minutos después de la salida. Vamos a reconstruir el itinerario:
@@ -533,14 +556,18 @@ ymd(fecha)
   Cuando consideramos zonas horarias, peridos que incluyen años bisiestos, etc. El manejo de fecha requiere de librerías como __lubridate__ para facilitar estas tareas.
   
 ```{r}
+nyc <- now(tzone = "America/New_York")
+salida <- nyc + days(2)
+salida <- update(salida, hour = 17, minute = 34)
+llegada_nyc <- salida + minutes(15*60 + 50)
+llegada_hk <- with_tz(llegada_nyc, tzone = "Asia/Hong_Kong")
+singapur <- ymd("2008-06-17", tz = "Asia/Singapore")
 
+intervalo <- interval(singapur, nyc)
+periodo <- as.period(intervalo)
 
-
-
-
-
-
-
+intervalo
+periodo
 
 ```
   
